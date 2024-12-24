@@ -1,0 +1,48 @@
+name: Auto Update IPTV M3U
+
+on:
+  schedule:
+    - cron: "0 */1 * * *"  # 每小时运行一次
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  update_m3u:
+    runs-on: ubuntu-latest
+    env:  # 引用 GitHub Secrets
+      TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}  # Telegram Bot Token
+      TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}  # 你的聊天 ID
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'  # 根据需要修改 Python 版本
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run M3U Merge Script
+        run: |
+          python run_channels.py  # 运行合并脚本
+
+      - name: Commit and push the changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: 'GitHub Actions'
+          author_email: 'github-actions@github.com'
+          message: 'Auto-update M3U channels list'
+
+      - name: Send Telegram Notification
+        run: |
+          # 获取当前时间
+          UPDATE_TIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          # 构建推送消息
+          MESSAGE="M3U 更新完成 更新时间：$UPDATE_TIME"
+          # 发送到 Telegram
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage \
+          -d chat_id=${{ secrets.TG_CHAT_ID }} \
+          -d text="$MESSAGE"
