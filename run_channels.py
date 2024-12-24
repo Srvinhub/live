@@ -1,6 +1,7 @@
 import os
 import requests
 
+# 源文件链接
 SOURCE_URL_IPV6_1 = "https://raw.githubusercontent.com/fanmingming/live/refs/heads/main/tv/m3u/ipv6.m3u"
 SOURCE_URL_IPV6_2 = "https://raw.githubusercontent.com/suxuang/myIPTV/refs/heads/main/ipv6.m3u"
 
@@ -49,13 +50,20 @@ def filter_and_group_channels(m3u_content, group_name_mapping):
             # 提取当前的 group-title
             group_title = None
             if 'group-title=' in line:
-                group_title = line.split('group-title="')[1].split('"')[0]
+                try:
+                    group_title = line.split('group-title="')[1].split('"')[0]
+                except IndexError:
+                    print(f"警告: 未能正确提取 group-title: {line}")
+                    group_title = "未分类"  # 如果没有提取成功，默认设置为“未分类”
+            
+            # 打印每个频道的 group-title，以便调试
+            print(f"频道: {channel_name}, 原 group-title: {group_title}")
 
             # 根据 group-title 映射进行重命名
-            if group_title in group_name_mapping:
-                new_group_title = group_name_mapping[group_title]
-            else:
-                new_group_title = group_title  # 如果没有映射，保持原样
+            new_group_title = group_name_mapping.get(group_title, group_title)  # 如果没有映射，保持原样
+
+            # 打印映射后的 group-title
+            print(f"映射后的 group-title: {new_group_title}")
 
             formatted_channel = format_channel_info(channel_name, channel_name, new_group_title, url)
             filtered_content.append(formatted_channel)
@@ -109,7 +117,6 @@ if __name__ == "__main__":
             "港澳台频道": "港台频道",
             "电视剧轮播": "电视轮播",
             "港澳台AKTV": "港台电视"
-
         }
 
         # 第二个源文件筛选并分组
