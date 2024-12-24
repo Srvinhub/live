@@ -51,11 +51,12 @@ def filter_and_group_channels(m3u_content, group_name_mapping):
             group_title = None
             if 'group-title=' in line:
                 try:
+                    # 正确提取 group-title，确保不漏掉字段
                     group_title = line.split('group-title="')[1].split('"')[0]
                 except IndexError:
                     print(f"警告: 未能正确提取 group-title: {line}")
                     group_title = "未分类"  # 如果没有提取成功，默认设置为“未分类”
-            
+
             # 打印每个频道的 group-title，以便调试
             print(f"频道: {channel_name}, 原 group-title: {group_title}")
 
@@ -108,15 +109,16 @@ if __name__ == "__main__":
     if m3u_content_ipv6_1 and m3u_content_ipv6_2:
         # 定义重命名映射：group-title
         group_name_mapping = {
-            "埋堆堆": "埋堆剧集",
+            "埋堆堆": "埋堆剧集",   # 确保映射规则包含这个项
             "电影轮播": "电影轮播",
             "春晚频道": "春晚频道",
             "国际频道": "国际频道",
-            "IHOT频道": "二哈频道",
-            "NewTV频道": "牛蹄视界",
+            "IHOT频道": "二哈频道",  # 确保映射规则包含这个项
+            "NewTV频道": "牛蹄视界",  # 确保映射规则包含这个项
             "港澳台频道": "港台频道",
             "电视剧轮播": "电视轮播",
-            "港澳台AKTV": "港台电视"
+            "港澳台AKTV": "港台电视",
+            "动画频道": "动画频道"    # 确保动画频道也在映射中
         }
 
         # 第二个源文件筛选并分组
