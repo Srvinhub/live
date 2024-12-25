@@ -1,6 +1,7 @@
 import requests
 import re
 import os
+from datetime import datetime, timedelta, timezone
 
 # 配置 URL 和替换规则
 URLS = [
@@ -10,9 +11,9 @@ URLS = [
 
 # 替换 group-title 规则
 REMAP_GROUPS = {
-    "埋堆堆": "埋堆剧集",
     "IHOT频道": "二哈频道",
     "NewTV频道": "全新视野",
+    "埋堆堆": "埋堆剧集",
     "港澳台AKTV": "港台电视",
     "港澳台频道": "港台频道",
     "电视剧轮播": "电视轮播"
@@ -21,6 +22,9 @@ REMAP_GROUPS = {
 # Telegram 推送配置
 TG_BOT_TOKEN = os.getenv("TG_BOT_TOKEN")
 TG_CHAT_ID = os.getenv("TG_CHAT_ID")
+
+# 北京时区
+BEIJING_TZ = timezone(timedelta(hours=8))
 
 
 def clean_extinf(line):
@@ -93,6 +97,13 @@ def send_telegram_message(message):
         print(f"Telegram 推送失败: {e}")
 
 
+def get_beijing_time():
+    """
+    获取当前北京时间
+    """
+    return datetime.now(BEIJING_TZ).strftime("%Y-%m-%d %H:%M:%S")
+
+
 def main():
     """
     主函数
@@ -102,10 +113,12 @@ def main():
         content = fetch_and_process_m3u()
         save_to_file(content)
         print("m3u 文件处理完成，保存为 live.m3u")
-        send_telegram_message("m3u 文件已更新，并成功生成 live.m3u")
+        beijing_time = get_beijing_time()
+        send_telegram_message(f"m3u 文件已更新，并成功生成 live.m3u\n推送时间：{beijing_time}")
     except Exception as e:
         print(f"处理失败: {e}")
-        send_telegram_message(f"m3u 文件处理失败: {e}")
+        beijing_time = get_beijing_time()
+        send_telegram_message(f"m3u 文件处理失败: {e}\n推送时间：{beijing_time}")
 
 
 if __name__ == "__main__":
